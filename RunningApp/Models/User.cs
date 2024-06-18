@@ -6,6 +6,6 @@ namespace RunningApp.Models
     {
         public string Name { get; set; }
         public string Surname { get; set; }
-        public ICollection<RunningSession> RunningSession { get; set; }
+        public ICollection<RunningSession> RunningSessions { get; set; }
     }
 }

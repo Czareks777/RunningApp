@@ -73,11 +73,6 @@ namespace RunningApp.Controllers
                     return BadRequest(new { message = "Incorrect email or password." });
                 }
 
-                if (!await _userManager.IsEmailConfirmedAsync(user))
-                {
-                    return BadRequest(new { message = "Email not confirmed. Please check your inbox." });
-                }
-
                 var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
 
                 if (!result.Succeeded)
