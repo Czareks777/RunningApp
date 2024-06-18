@@ -12,8 +12,8 @@ using RunningApp.Data;
 namespace RunningApp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20240616064326_initial")]
-    partial class initial
+    [Migration("20240618154306_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -182,10 +182,6 @@ namespace RunningApp.Migrations
 
                     b.Property<double>("Minutes")
                         .HasColumnType("float");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .IsRequired()

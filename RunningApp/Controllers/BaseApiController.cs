@@ -3,9 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace RunningApp.Controllers
 {
+    
     [ApiController]
-    [Route("[controller]")]
-    [EnableCors("AllowAll")]
+    [Route("api/[controller]")]
+    [EnableCors("RunningApp")]
     public class BaseApiController:ControllerBase
     {
     }

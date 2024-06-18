@@ -1,11 +1,8 @@
-﻿using Azure.Core;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using RunningApp.Data;
 using RunningApp.Models;
 using RunningApp.Repository.Interfaces;
-using System.Data;
-using System;
 using RunningApp.DTO_s;
 
 namespace RunningApp.Controllers

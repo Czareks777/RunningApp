@@ -180,10 +180,6 @@ namespace RunningApp.Migrations
                     b.Property<double>("Minutes")
                         .HasColumnType("float");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");

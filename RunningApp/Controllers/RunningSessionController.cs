@@ -1,43 +1,39 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RunningApp.Data;
 using RunningApp.Models;
-using System;
-using System.IO;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace RunningApp.Controllers
 {
-    public class RunningSessionController : BaseApiController
+
+    public class RunningSessionController :BaseApiController
     {
         private readonly DataContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly UserManager<User> _userManager;
-        public RunningSessionController(DataContext context, IHttpContextAccessor httpContextAccessor,UserManager<User> userManager )
+
+        public RunningSessionController(DataContext context, IHttpContextAccessor httpContextAccessor, UserManager<User> userManager)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
             _userManager = userManager;
-
         }
 
+       
         [HttpPost]
-        [Route("create")]
+
+
+        [HttpPost]
+        [Authorize(Roles = "User")] // Ensure the user has the 'User' role
         public async Task<IActionResult> Create([FromForm] RunningSessionDTO model)
         {
             try
             {
-                string userEmail = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Email);
-                var user = await _userManager.FindByEmailAsync(userEmail);
                 byte[] imageData = null;
-
                 if (model.Image != null)
                 {
-                    
                     using (var memoryStream = new MemoryStream())
                     {
                         await model.Image.CopyToAsync(memoryStream);
@@ -45,14 +41,21 @@ namespace RunningApp.Controllers
                     }
                 }
 
+                // Extract UserId from authenticated user
+                var userId = _userManager.GetUserId(User);
+                if (userId == null)
+                {
+                    return Unauthorized("User is not authenticated.");
+                }
+
                 var runningSession = new RunningSession
                 {
                     Date = model.Date,
                     Kilometers = model.Kilometers,
-                    Minutes = model.Time,
-                    UserId = model.UserId,
+                    Minutes = model.Minutes,
                     Description = model.Description,
-                    Image = imageData
+                    Image = imageData,
+                    UserId = userId // Correctly set the UserId from the authenticated user
                 };
 
                 _context.RunningSessions.Add(runningSession);
@@ -61,12 +64,13 @@ namespace RunningApp.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                // Log the full exception
+                var innerException = ex.InnerException?.ToString();
+                return BadRequest($"Error: {ex.Message}, Inner Exception: {innerException}");
             }
         }
 
-        [HttpGet]
-        [Route("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> Get(int id)
         {
             var runningSession = await _context.RunningSessions.FindAsync(id);
@@ -77,18 +81,14 @@ namespace RunningApp.Controllers
             return Ok(runningSession);
         }
 
-        [HttpGet]
-        [Route("all")]
+        [HttpGet("all")]
         public async Task<IActionResult> GetAll()
         {
-            string userEmail = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Email);
-            var user = await _userManager.FindByEmailAsync(userEmail);
             var runningSessions = await _context.RunningSessions.ToListAsync();
             return Ok(runningSessions);
         }
 
-        [HttpPut]
-        [Route("update/{id}")]
+        [HttpPut("update/{id:int}")]
         public async Task<IActionResult> Update(int id, [FromForm] RunningSessionDTO model)
         {
             var runningSession = await _context.RunningSessions.FindAsync(id);
@@ -99,7 +99,7 @@ namespace RunningApp.Controllers
 
             runningSession.Date = model.Date;
             runningSession.Kilometers = model.Kilometers;
-            runningSession.Minutes = model.Time;
+            runningSession.Minutes = model.Minutes;
             runningSession.Description = model.Description;
 
             if (model.Image != null)
@@ -115,8 +115,7 @@ namespace RunningApp.Controllers
             return Ok("Running session updated.");
         }
 
-        [HttpDelete]
-        [Route("delete/{id}")]
+        [HttpDelete("delete/{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
             var runningSession = await _context.RunningSessions.FindAsync(id);
@@ -130,8 +129,7 @@ namespace RunningApp.Controllers
             return Ok("Running session deleted.");
         }
 
-        [HttpDelete]
-        [Route("deleteImage/{id}")]
+        [HttpDelete("deleteImage/{id:int}")]
         public async Task<IActionResult> DeleteImage(int id)
         {
             var runningSession = await _context.RunningSessions.FindAsync(id);
@@ -144,9 +142,8 @@ namespace RunningApp.Controllers
             await _context.SaveChangesAsync();
             return Ok("Image deleted from running session.");
         }
-        
-        [HttpGet]
-        [Route("last")]
+
+        [HttpGet("last")]
         public async Task<IActionResult> GetLast()
         {
             var runningSession = await _context.RunningSessions
@@ -159,6 +156,14 @@ namespace RunningApp.Controllers
             }
 
             return Ok(runningSession);
+        }
+
+        [HttpGet("debug/claims")]
+        public IActionResult GetClaims()
+        {
+            var claims = _httpContextAccessor.HttpContext.User.Claims;
+            var claimsDictionary = claims.ToDictionary(c => c.Type, c => c.Value);
+            return Ok(claimsDictionary);
         }
     }
 }

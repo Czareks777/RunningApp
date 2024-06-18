@@ -9,7 +9,6 @@ namespace RunningApp.Models
         [ForeignKey("UserId")]
         public string UserId { get; set; }
         public User User { get; set; } 
-        public string Name { get; set; }
         public double Kilometers { get; set; }
         public double Minutes { get; set; }
        
